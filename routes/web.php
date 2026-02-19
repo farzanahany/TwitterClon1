@@ -1,52 +1,82 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CommentController;
 
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware(['auth'])->group(function () {
 
-    // ✅ Dashboard soll Feed sein
-
+    //dashboard 
     Route::get('/dashboard', function () {
-    return redirect()->route('posts.index');
-    })->middleware(['auth'])->name('dashboard');
+        return redirect()->route('posts.index');
+    })->name('dashboard');
 
 
-    //user profile
+    //profile
 
-    Route::get('/u/{user:username}', [ProfileController::class, 'show'])
-    ->name('profile.show');
+    // Profil anzeigen (Route Model Binding über benutzername)
+    Route::get('/u/{user:benutzername}', [ProfileController::class, 'show'])
+        ->name('profile.show');
 
-    Route::middleware('auth')->group(function () {
-    Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profil', [ProfileController::class, 'update'])->name('profile.update');
-});
+    // Eigenes Profil bearbeiten
+    Route::get('/profil', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    // Profil speichern (PUT oder PATCH)
+    Route::put('/profil', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::patch('/profil', [ProfileController::class, 'update']);
+
+    // Profil löschen
+    Route::delete('/profil', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
+
+    //posts
+
+    Route::get('/posts', [PostController::class, 'index'])
+        ->name('posts.index');
+
+    Route::post('/posts', [PostController::class, 'store'])
+        ->name('posts.store');
+
+    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])
+        ->name('posts.edit');
+
+    Route::patch('/posts/{post}', [PostController::class, 'update'])
+        ->name('posts.update');
+
+    Route::delete('/posts/{post}', [PostController::class, 'destroy'])
+        ->name('posts.destroy');
+
+    Route::post('/posts/{post}/like', [PostController::class, 'toggleLike'])
+        ->name('posts.like');
 
 
-    // Startseite -> Dashboard
+    //Kommentare
+   
+
+    Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
+        ->name('comments.store');
+
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
+        ->name('comments.destroy');
+
+
+    
+    //Startseite
+
     Route::get('/', function () {
-        return redirect()->route('dashboard');
+        return redirect()->route('posts.index');
     })->name('startseite');
-
-    // Profil
-    Route::get('/profil', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profil', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profil', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/u/{user:benutzername}', [ProfileController::class, 'show'])->name('profile.show');
-
-    // Posts (optional weiterhin erreichbar)
-    Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
-    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
-    Route::post('/posts/{post}/like', [PostController::class, 'toggleLike'])->name('posts.like');
-    Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
-    Route::get('/posts/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
-    Route::patch('/posts/{post}', [PostController::class, 'update'])->name('posts.update');
-    Route::get('/', [PostController::class, 'index'])->name('posts.index');
-
-
-
 });
+
 
 require __DIR__.'/auth.php';

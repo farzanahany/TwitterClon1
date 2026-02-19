@@ -16,13 +16,26 @@
                 @method('PUT')
 
                 <div>
+                    <label class="text-sm font-semibold">Name</label>
+                    <input
+                        type="text"
+                        name="name"
+                        value="{{ old('name', $user->name) }}"
+                        class="w-full border border-black bg-white rounded px-3 py-2"
+                    >
+                    @error('name')
+                        <div class="text-red-600 text-sm">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div>
                     <label class="text-sm font-semibold">Benutzername</label>
                     <input
                         type="text"
                         name="benutzername"
                         value="{{ old('benutzername', $user->benutzername) }}"
                         class="w-full border border-black bg-white rounded px-3 py-2"
-                    />
+                    >
                     @error('benutzername')
                         <div class="text-red-600 text-sm">{{ $message }}</div>
                     @enderror
@@ -32,7 +45,7 @@
                     <label class="text-sm font-semibold">Profilbeschreibung</label>
                     <textarea
                         name="profilbeschreibung"
-                        rows="3"
+                        rows="4"
                         class="w-full border border-black bg-white rounded px-3 py-2"
                     >{{ old('profilbeschreibung', $user->profilbeschreibung) }}</textarea>
 
@@ -41,9 +54,14 @@
                     @enderror
                 </div>
 
-                <div class="flex justify-end">
+                <div class="flex justify-end gap-2">
+                    <a href="{{ route('profile.show', auth()->user()) }}"
+                       class="px-4 py-2 rounded border border-black bg-white text-black hover:bg-gray-100 transition">
+                        Abbrechen
+                    </a>
+
                     <button type="submit"
-                        class="px-4 py-2 rounded border border-black bg-gray-200 text-black hover:bg-gray-300 transition">
+                            class="px-4 py-2 rounded border border-black bg-gray-200 text-black hover:bg-gray-300 transition">
                         Speichern
                     </button>
                 </div>

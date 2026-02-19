@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
@@ -12,7 +13,9 @@ class ProfileController extends Controller
     {
         // Posts des Users (neueste zuerst) + Like-Anzahl pro Post
         $posts = $user->posts()
+            ->with('user')
             ->withCount('likes')
+            ->with(['comments.user'])   // ✅ Kommentare + User laden
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -46,18 +49,47 @@ class ProfileController extends Controller
     }
      public function update(Request $request)
     {
-       $user = Auth::user();
+        $user = Auth::user();
 
-        $data = $request->validate([
-        'benutzername' => ['required', 'string', 'max:50', 'alpha_dash', 'unique:users,benutzername,' . $user->id],
+    $data = $request->validate([
+        'name'  => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+
+        // ✅ NUR prüfen, wenn es im Formular wirklich mitgeschickt wird
+        'benutzername' => ['sometimes', 'required', 'string', 'max:50', 'alpha_dash', 'unique:users,benutzername,' . $user->id],
+
+        // ✅ Profilbeschreibung speichern
         'profilbeschreibung' => ['nullable', 'string', 'max:255'],
     ]);
 
     $user->update($data);
 
     return redirect()
-        ->route('profile.show', $user)
+        ->route('profile.show', ['user' => $user->benutzername])
         ->with('success', 'Profil gespeichert!');
         
+    }
+    /**
+     * Entfernt das aktuell eingeloggte Benutzerkonto.
+     */
+    public function destroy(Request $request)
+    {
+        $user = Auth::user();
+
+        // Optional: Passwort-Bestätigung prüfen
+        $request->validate([
+            'password' => ['required'],
+        ]);
+        if (!\Hash::check($request->password, $user->password)) {
+            return back()->withErrors(['password' => 'Das Passwort ist falsch.'])->with('userDeletion', true);
+        }
+
+        Auth::logout();
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/')->with('success', 'Dein Account wurde gelöscht.');
     }
 }

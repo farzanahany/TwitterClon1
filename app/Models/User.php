@@ -22,6 +22,7 @@ class User extends Authenticatable
         'profilbeschreibung',
     ];
 
+
     protected $hidden = [
         'password',
         'remember_token',
@@ -67,4 +68,9 @@ class User extends Authenticatable
     {
         return 'benutzername';
     }
+
+    public function comments(): HasMany
+{
+    return $this->hasMany(Comment::class);
+}
 }

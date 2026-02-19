@@ -11,7 +11,14 @@ class Post extends Model
     protected $fillable = [
     'content',
     'user_id',   // ✅ GANZ WICHTIG
-];
+    ];
+
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class)->latest();
+    }
+
 
 
     public function user(): BelongsTo
